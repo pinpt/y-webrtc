@@ -147,7 +147,9 @@ const sendWebrtcConn = (webrtcConn, encoder) => {
   log('send message to ', logging.BOLD, webrtcConn.remotePeerId, logging.UNBOLD, logging.GREY, ' (', webrtcConn.room.name, ')', logging.UNCOLOR)
   try {
     webrtcConn.peer.send(encoding.toUint8Array(encoder))
-  } catch (e) {}
+  } catch (e) {
+    log('error sending message to ', logging.BOLD, webrtcConn.remotePeerId, logging.UNBOLD, logging.RED, e, logging.UNCOLOR);
+  }
 }
 
 /**
@@ -159,7 +161,9 @@ const broadcastWebrtcConn = (room, m) => {
   room.webrtcConns.forEach(conn => {
     try {
       conn.peer.send(m)
-    } catch (e) {}
+    } catch (e) {
+      log('error sending broadcast message to ', logging.BOLD, room.name, logging.UNBOLD, logging.RED, e, logging.UNCOLOR);
+    }
   })
 }
 
@@ -170,7 +174,7 @@ export class WebrtcConn {
    * @param {string} remotePeerId
    * @param {Room} room
    */
-  constructor (signalingConn, initiator, remotePeerId, room) {
+  constructor(signalingConn, initiator, remotePeerId, room) {
     log('establishing connection to ', logging.BOLD, remotePeerId)
     this.room = room
     this.remotePeerId = remotePeerId
@@ -235,7 +239,7 @@ export class WebrtcConn {
     })
   }
 
-  destroy () {
+  destroy() {
     this.peer.destroy()
   }
 }
@@ -272,6 +276,8 @@ const announceSignalingInfo = room => {
       if (room.webrtcConns.size < room.provider.maxConns) {
         publishSignalingMessage(conn, room, { type: 'announce', from: room.peerId })
       }
+    } else {
+      log('announceSignalingInfo but was not connected ', logging.BOLD, room.name, logging.UNBOLD);
     }
   })
 }
@@ -297,7 +303,7 @@ export class Room {
    * @param {string} name
    * @param {CryptoKey|null} key
    */
-  constructor (doc, provider, name, key) {
+  constructor(doc, provider, name, key) {
     /**
      * Do not assume that peerId is unique. This is only meant for sending signaling messages.
      *
@@ -330,7 +336,7 @@ export class Room {
     this._bcSubscriber = data =>
       cryptoutils.decrypt(new Uint8Array(data), key).then(m =>
         this.mux(() => {
-          const reply = readMessage(this, m, () => {})
+          const reply = readMessage(this, m, () => { })
           if (reply) {
             broadcastBcMessage(this, encoding.toUint8Array(reply))
           }
@@ -371,7 +377,7 @@ export class Room {
     })
   }
 
-  connect () {
+  connect() {
     // signal through all available signaling connections
     announceSignalingInfo(this)
     const roomName = this.name
@@ -400,11 +406,13 @@ export class Room {
     broadcastBcMessage(this, encoding.toUint8Array(encoderAwarenessState))
   }
 
-  disconnect () {
+  disconnect() {
     // signal through all available signaling connections
     signalingConns.forEach(conn => {
       if (conn.connected) {
         conn.send({ type: 'unsubscribe', topics: [this.name] })
+      } else {
+        log('disconnect but was not connected ', logging.BOLD, this.name, logging.UNBOLD);
       }
     })
     awarenessProtocol.removeAwarenessStates(this.awareness, [this.doc.clientID], 'disconnect')
@@ -422,7 +430,7 @@ export class Room {
     this.webrtcConns.forEach(conn => conn.destroy())
   }
 
-  destroy () {
+  destroy() {
     this.disconnect()
   }
 }
@@ -440,7 +448,7 @@ const openRoom = (doc, provider, name, key) => {
     throw error.create(`A Yjs Doc connected to room "${name}" already exists!`)
   }
   const room = new Room(doc, provider, name, key)
-  rooms.set(name, /** @type {Room} */ (room))
+  rooms.set(name, /** @type {Room} */(room))
   return room
 }
 
@@ -460,7 +468,7 @@ const publishSignalingMessage = (conn, room, data) => {
 }
 
 export class SignalingConn extends ws.WebsocketClient {
-  constructor (url) {
+  constructor(url) {
     super(url)
     /**
      * @type {Set<WebrtcProvider>}
@@ -489,7 +497,7 @@ export class SignalingConn extends ws.WebsocketClient {
               // ignore messages that are not addressed to this conn, or from clients that are connected via broadcastchannel
               return
             }
-            const emitPeerChange = webrtcConns.has(data.from) ? () => {} : () =>
+            const emitPeerChange = webrtcConns.has(data.from) ? () => { } : () =>
               room.provider.emit('peers', [{
                 removed: [],
                 added: [data.from],
@@ -540,7 +548,7 @@ export class WebrtcProvider extends Observable {
    * @param {boolean} [opts.filterBcConns]
    * @param {any} [opts.peerOpts]
    */
-  constructor (
+  constructor(
     roomName,
     doc,
     {
@@ -587,11 +595,11 @@ export class WebrtcProvider extends Observable {
   /**
    * @type {boolean}
    */
-  get connected () {
+  get connected() {
     return this.room !== null && this.shouldConnect
   }
 
-  connect () {
+  connect() {
     this.shouldConnect = true
     this.signalingUrls.forEach(url => {
       const signalingConn = map.setIfUndefined(signalingConns, url, () => new SignalingConn(url))
@@ -603,7 +611,7 @@ export class WebrtcProvider extends Observable {
     }
   }
 
-  disconnect () {
+  disconnect() {
     this.shouldConnect = false
     this.signalingConns.forEach(conn => {
       conn.providers.delete(this)
@@ -617,7 +625,7 @@ export class WebrtcProvider extends Observable {
     }
   }
 
-  destroy () {
+  destroy() {
     // need to wait for key before deleting room
     this.key.then(() => {
       /** @type {Room} */ (this.room).destroy()

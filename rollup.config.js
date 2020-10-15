@@ -30,7 +30,7 @@ const customLibModules = new Set([
 
 // @ts-ignore We use this for debugging
 const debugResolve = {
-  resolveId (importee) {
+  resolveId(importee) {
     if (localImports) {
       if (importee === 'yjs') {
         return `${process.cwd()}/../yjs/src/index.js`
@@ -71,29 +71,11 @@ const plugins = [
 
 export default [
   {
-    input: './demo/index.js',
-    output: [{
-      name: 'demo',
-      file: 'dist/demo.js',
-      format: 'iife',
-      sourcemap: true
-    }],
-    plugins
-  }, {
-    input: './test/index.js',
-    output: [{
-      name: 'test',
-      file: 'dist/test.js',
-      format: 'iife',
-      sourcemap: true
-    }],
-    plugins
-  }, {
-    input: './src/y-webrtc.js',
+    input: './src/pinpt-y-webrtc.js',
     external: id => /^(lib0|yjs|y-protocols|simple-peer)/.test(id),
     output: [{
-      name: 'y-webrtc',
-      file: 'dist/y-webrtc.cjs',
+      name: 'pinpt-y-webrtc',
+      file: 'dist/pinpt-y-webrtc.cjs',
       format: 'cjs',
       sourcemap: true,
       paths: path => {
@@ -104,6 +86,7 @@ export default [
         }
         return path
       }
-    }]
+    }],
+    plugins
   }
 ]

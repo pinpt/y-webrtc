@@ -1,10 +1,10 @@
 {
-  "name": "y-webrtc",
-  "version": "10.1.6",
+  "name": "pinpt-y-webrtc",
+  "version": "10.1.6-prerelease2",
   "description": "WebRTC provider for Yjs",
-  "main": "./dist/y-webrtc.cjs",
-  "types": "./dist/src/y-webrtc.d.ts",
-  "module": "./src/y-webrtc.js",
+  "main": "./dist/pinpt-y-webrtc.cjs",
+  "types": "./dist/src/pinpt-y-webrtc.d.ts",
+  "module": "./src/pinpt-y-webrtc.js",
   "sideEffects": false,
   "funding": {
     "type": "GitHub Sponsors ❤",
