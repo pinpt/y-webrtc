@@ -30,7 +30,7 @@ const customLibModules = new Set([
 
 // @ts-ignore We use this for debugging
 const debugResolve = {
-  resolveId(importee) {
+  resolveId (importee) {
     if (localImports) {
       if (importee === 'yjs') {
         return `${process.cwd()}/../yjs/src/index.js`
