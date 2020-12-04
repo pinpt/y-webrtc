@@ -1,6 +1,6 @@
 {
   "name": "pinpt-y-webrtc",
-  "version": "10.1.7-prerelease20",
+  "version": "10.1.7",
   "description": "WebRTC provider for Yjs",
   "main": "./dist/pinpt-y-webrtc.cjs",
   "types": "./dist/src/pinpt-y-webrtc.d.ts",
